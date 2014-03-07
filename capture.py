@@ -3,6 +3,7 @@ import Xlib
 from Xlib import X, XK, display
 from Xlib.ext import record
 from Xlib.protocol import rq
+import Xlib.protocol.request
 import sys
 
 local_dpy = display.Display()
@@ -10,6 +11,17 @@ record_dpy = display.Display()
 
 SHIFT_KEYCODE = 50 #wow such portable
 is_shifted = False
+
+# req_nonbin = {'first_keycode':35, 'count':255,}
+# req_bin = Xlib.protocol.request.GetKeyboardMapping._request.to_binary(first_keycode=35,count=255)
+
+# req = rq.ReplyRequest(local_dpy, first_keycode=35,count=255)
+
+# a = Xlib.protocol.request.GetKeyboardMapping(req)
+# print(a)
+
+# perhaps this will help you do this in a less horrible way:
+# http://tronche.com/gui/x/xlib/input/keyboard-encoding.html
 
 def set_shift(oo):
     global is_shifted
@@ -21,7 +33,10 @@ def set_shift(oo):
 
 # only detects shift so far. also
 def interpret_keypress(keypress, type):
-    k = XK.keysym_to_string(local_dpy.keycode_to_keysym(keypress, 0))
+    if is_shifted:
+        k = XK.keysym_to_string(local_dpy.keycode_to_keysym(keypress, 1))
+    else:
+        k = XK.keysym_to_string(local_dpy.keycode_to_keysym(keypress, 1))
     if k == None and keypress == 50:
         if type == X.KeyPress:
             set_shift(True)
@@ -30,11 +45,11 @@ def interpret_keypress(keypress, type):
         k = SHIFT_KEYCODE
     return k
 
-def shift_input(c):
-    if is_shifted:
-        return c.upper()
-    else:
-        return c
+# def shift_input(c):
+#     if is_shifted:
+#         return c.upper()
+#     else:
+#         return c
 
 # it's not giving names for modifier keys and stuff :o
 # it also doesn't detect shifted keys. please fix
@@ -65,7 +80,7 @@ def record_callback(reply):
                 c = interpret_keypress(event.detail, X.KeyPress)
                 if c == SHIFT_KEYCODE:
                     continue
-                print("KeyStr", shift_input(c))
+                print("KeyStr", c)
             elif event.type == X.KeyRelease:
                 # print("release event is", event.detail)
                 interpret_keypress(event.detail, X.KeyRelease)
