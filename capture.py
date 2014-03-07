@@ -30,18 +30,16 @@ def set_shift(oo):
         sys.exit(1)
 
     is_shifted = not is_shifted
+    print("is_shifted is now", is_shifted)
 
 # only detects shift so far. also
-def interpret_keypress(keypress, type):
+def interpret_keypress(keypress):
     if is_shifted:
         k = XK.keysym_to_string(local_dpy.keycode_to_keysym(keypress, 1))
     else:
-        k = XK.keysym_to_string(local_dpy.keycode_to_keysym(keypress, 1))
+        k = XK.keysym_to_string(local_dpy.keycode_to_keysym(keypress, 0))
     if k == None and keypress == 50:
-        if type == X.KeyPress:
-            set_shift(True)
-        else:
-            set_shift(False)
+        set_shift(True)
         k = SHIFT_KEYCODE
     return k
 
@@ -77,13 +75,15 @@ def record_callback(reply):
                 # if not keysym: #this doesn't seem to do anything...
                     # print("KeyCode", event.detail)
                 # else:
-                c = interpret_keypress(event.detail, X.KeyPress)
+                c = interpret_keypress(event.detail)
                 if c == SHIFT_KEYCODE:
                     continue
                 print("KeyStr", c)
             elif event.type == X.KeyRelease:
                 # print("release event is", event.detail)
-                interpret_keypress(event.detail, X.KeyRelease)
+                # this was previously inside interpret_keypress() as well but it didn't work there for some reason...
+                if event.detail == SHIFT_KEYCODE:
+                    set_shift(False)
 
     except KeyboardInterrupt:
         # I have no idea whether this cleanup part actually works lol
