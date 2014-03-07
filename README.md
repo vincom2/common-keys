@@ -7,6 +7,7 @@ Setup
 -----
 
 because `pyvenv-3.3` is annoying:<br/>
+
 1. make the venv. `pyvenv-3.3 common-keys` (or whatever you want to call it)
 1. `cd common-keys`
 1. `source bin/activate` (assuming you’re using bash)
